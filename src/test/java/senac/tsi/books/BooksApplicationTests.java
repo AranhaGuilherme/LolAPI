@@ -112,6 +112,18 @@ class BooksApplicationTests {
     }
 
     @Test
+    void adminPodeRevogarApiKey() throws Exception {
+        String apiKey = gerarApiKeyPadrao("chave-para-revogar");
+
+        mockMvc.perform(delete("/api-keys/" + apiKey).header("X-API-Key", ADMIN_KEY))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active", is(false)));
+
+        mockMvc.perform(get("/api/v1/champions/1").header("X-API-Key", apiKey))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void apiKeysNaoPossuemEndpointDeListagem() throws Exception {
         String apiKey = gerarApiKeyPadrao("admin-sem-listagem");
 

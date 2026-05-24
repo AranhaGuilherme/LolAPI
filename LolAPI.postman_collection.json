@@ -15,6 +15,10 @@
     {
       "key": "idempotencyKey",
       "value": "postman-champion-001"
+    },
+    {
+      "key": "apiKeyParaRevogar",
+      "value": "cole-a-chave-gerada-aqui"
     }
   ],
   "item": [
@@ -36,6 +40,19 @@
           }
         ],
         "url": "{{baseUrl}}/api/v1/champions?page=0&size=5"
+      }
+    },
+    {
+      "name": "API Key - Revogar",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api-keys/{{apiKeyParaRevogar}}"
       }
     },
     {

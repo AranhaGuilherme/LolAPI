@@ -31,6 +31,23 @@ public class ApiKeyStore {
         return Optional.of(apiKey);
     }
 
+    public Optional<ApiKeyData> revoke(String keyValue) {
+        ApiKeyData apiKey = keys.get(keyValue);
+        if (apiKey == null) {
+            return Optional.empty();
+        }
+
+        ApiKeyData revoked = new ApiKeyData(
+                apiKey.username(),
+                apiKey.keyValue(),
+                apiKey.role(),
+                false,
+                apiKey.createdAt()
+        );
+        keys.put(keyValue, revoked);
+        return Optional.of(revoked);
+    }
+
     private ApiKeyData save(String username, String keyValue, ApiKeyRole role) {
         ApiKeyData data = new ApiKeyData(username, keyValue, role, true, LocalDateTime.now());
         keys.put(keyValue, data);

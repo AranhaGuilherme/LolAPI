@@ -58,6 +58,13 @@ Por padrao, a chave gerada recebe role `ADMIN`, para facilitar os testes no Swag
 Tambem e possivel informar `role=USER`, mas `DELETE` exige `ADMIN`.
 Nao existe endpoint para listar chaves de API, para evitar exposicao de chaves cadastradas.
 
+Para revogar uma chave, use uma chave `ADMIN` no header:
+
+```http
+DELETE /api-keys/{keyValue}
+X-API-Key: admin-test-key
+```
+
 ## Versionamento
 
 A API usa rotas versionadas:
@@ -90,6 +97,7 @@ Ao iniciar com H2, a API ja carrega uma massa demonstrativa de League of Legends
 - API Key com roles `USER` e `ADMIN`
 - `DELETE` exige chave `ADMIN`
 - Geracao publica de API Key de teste, com `ADMIN` como padrao
+- Revogacao de API Key sem endpoint de listagem
 - Idempotencia em `POST` com `X-Idempotency-Key`
 - Rate limit fixo de **20 requisicoes por minuto**
 - CORS configurado para frontends locais
@@ -137,4 +145,4 @@ Idempotency-Replayed: true
 mvnw.cmd test
 ```
 
-Os testes verificam contexto da aplicacao, carga inicial de dados de LoL, buscas por ID, buscas paginadas, API Key, permissao de `DELETE`, geracao de chave `ADMIN`, ausencia de listagem de chaves, idempotencia, rate limit de 20/min e versionamento por path.
+Os testes verificam contexto da aplicacao, carga inicial de dados de LoL, buscas por ID, buscas paginadas, API Key, permissao de `DELETE`, geracao e revogacao de chave `ADMIN`, ausencia de listagem de chaves, idempotencia, rate limit de 20/min e versionamento por path.
