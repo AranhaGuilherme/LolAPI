@@ -9,8 +9,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
-import senac.tsi.books.entities.IdempotencyRecord;
-import senac.tsi.books.repositories.IdempotencyRecordRepository;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,11 +21,11 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     public static final String IDEMPOTENCY_HEADER = "X-Idempotency-Key";
 
-    private final IdempotencyRecordRepository repository;
+    private final IdempotencyStore store;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public IdempotencyFilter(IdempotencyRecordRepository repository) {
-        this.repository = repository;
+    public IdempotencyFilter(IdempotencyStore store) {
+        this.store = store;
     }
 
     @Override
@@ -52,10 +50,10 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             return;
         }
 
-        IdempotencyRecord cached = repository.findById(key).orElse(null);
+        IdempotencyStore.IdempotencyData cached = store.find(key).orElse(null);
         if (cached != null) {
-            if (!cached.getMethod().equalsIgnoreCase(request.getMethod())
-                    || !cached.getRequestUri().equals(request.getRequestURI())) {
+            if (!cached.method().equalsIgnoreCase(request.getMethod())
+                    || !cached.requestUri().equals(request.getRequestURI())) {
                 response.setStatus(HttpServletResponse.SC_CONFLICT);
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
@@ -68,13 +66,13 @@ public class IdempotencyFilter extends OncePerRequestFilter {
                 return;
             }
 
-            response.setStatus(cached.getStatusCode());
+            response.setStatus(cached.statusCode());
             response.setHeader("Idempotency-Replayed", "true");
-            if (cached.getContentType() != null) {
-                response.setContentType(cached.getContentType());
+            if (cached.contentType() != null) {
+                response.setContentType(cached.contentType());
             }
             response.setCharacterEncoding("UTF-8");
-            response.getWriter().write(cached.getResponseBody() == null ? "" : cached.getResponseBody());
+            response.getWriter().write(cached.responseBody() == null ? "" : cached.responseBody());
             return;
         }
 
@@ -83,7 +81,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
         String body = new String(wrappedResponse.getContentAsByteArray(), StandardCharsets.UTF_8);
         if (wrappedResponse.getStatus() < 500) {
-            repository.save(new IdempotencyRecord(
+            store.save(new IdempotencyStore.IdempotencyData(
                     key,
                     request.getMethod(),
                     request.getRequestURI(),
@@ -96,15 +94,10 @@ public class IdempotencyFilter extends OncePerRequestFilter {
     }
 
     private boolean isDomainPost(String path) {
-        return path.equals("/champions")
-                || path.equals("/api/v1/champions")
-                || path.equals("/players")
+        return path.equals("/api/v1/champions")
                 || path.equals("/api/v1/players")
-                || path.equals("/teams")
                 || path.equals("/api/v1/teams")
-                || path.equals("/coaches")
                 || path.equals("/api/v1/coaches")
-                || path.equals("/matchgames")
                 || path.equals("/api/v1/matchgames");
     }
 }

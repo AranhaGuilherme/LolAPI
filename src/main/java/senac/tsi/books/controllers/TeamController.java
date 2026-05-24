@@ -23,7 +23,7 @@ import java.net.URI;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
-@RequestMapping({"/teams", "/api/v1/teams"})
+@RequestMapping("/api/v1/teams")
 @Tag(name = "Times")
 @DefaultApiResponses
 public class TeamController {

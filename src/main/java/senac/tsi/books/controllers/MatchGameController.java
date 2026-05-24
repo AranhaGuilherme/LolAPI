@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
-@RequestMapping({"/matchgames", "/api/v1/matchgames"})
+@RequestMapping("/api/v1/matchgames")
 @Tag(name = "Partidas")
 @DefaultApiResponses
 public class MatchGameController {

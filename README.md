@@ -60,18 +60,10 @@ Nao existe endpoint para listar chaves de API, para evitar exposicao de chaves c
 
 ## Versionamento
 
-A API mantem as rotas antigas por compatibilidade e tambem possui rotas versionadas:
+A API usa rotas versionadas:
 
 - v1: `/api/v1/champions`, `/api/v1/players`, `/api/v1/teams`, `/api/v1/coaches`, `/api/v1/matchgames`
 - v2: `/api/v2/players`
-
-O endpoint `/players/{id}` tambem demonstra versionamento por header:
-
-```http
-GET /players/1
-X-API-Key: admin-test-key
-X-API-Version: 2
-```
 
 ## Dados iniciais
 
@@ -101,29 +93,28 @@ Ao iniciar com H2, a API ja carrega uma massa demonstrativa de League of Legends
 - Idempotencia em `POST` com `X-Idempotency-Key`
 - Rate limit fixo de **20 requisicoes por minuto**
 - CORS configurado para frontends locais
-- Versionamento por path em `/api/v1/...` e `/api/v2/players`, alem do header `X-API-Version`
+- Versionamento por path em `/api/v1/...` e `/api/v2/players`
 
 ## Exemplos
 
 Buscar jogador v1, com HATEOAS:
 
 ```http
-GET /players/1
+GET /api/v1/players/1
 X-API-Key: admin-test-key
 ```
 
 Buscar jogador v2, resumido:
 
 ```http
-GET /players/1
+GET /api/v2/players/1
 X-API-Key: admin-test-key
-X-API-Version: 2
 ```
 
 Criar campeao com idempotencia:
 
 ```http
-POST /champions
+POST /api/v1/champions
 X-API-Key: admin-test-key
 X-Idempotency-Key: exemplo-001
 Content-Type: application/json
@@ -146,4 +137,4 @@ Idempotency-Replayed: true
 mvnw.cmd test
 ```
 
-Os testes verificam contexto da aplicacao, carga inicial de dados de LoL, buscas por ID, buscas paginadas, API Key, permissao de `DELETE`, geracao de chave `ADMIN`, ausencia de listagem de chaves, idempotencia, rate limit de 20/min e versionamento por path/header.
+Os testes verificam contexto da aplicacao, carga inicial de dados de LoL, buscas por ID, buscas paginadas, API Key, permissao de `DELETE`, geracao de chave `ADMIN`, ausencia de listagem de chaves, idempotencia, rate limit de 20/min e versionamento por path.

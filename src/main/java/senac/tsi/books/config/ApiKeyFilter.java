@@ -8,9 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import senac.tsi.books.entities.ApiKey;
 import senac.tsi.books.entities.ApiKeyRole;
-import senac.tsi.books.repositories.ApiKeyRepository;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -24,11 +22,11 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     public static final String API_KEY_ROLE_ATTRIBUTE = "apiKeyRole";
     public static final String API_KEY_VALUE_ATTRIBUTE = "apiKeyValue";
 
-    private final ApiKeyRepository repository;
+    private final ApiKeyStore apiKeyStore;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ApiKeyFilter(ApiKeyRepository repository) {
-        this.repository = repository;
+    public ApiKeyFilter(ApiKeyStore apiKeyStore) {
+        this.apiKeyStore = apiKeyStore;
     }
 
     @Override
@@ -38,7 +36,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                 || path.equals("/")
                 || path.equals("/error")
                 || path.startsWith("/api-keys/generate")
-                || path.startsWith("/api/v1/api-keys/generate")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/api-docs")
                 || path.startsWith("/v3/api-docs")
@@ -55,7 +52,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             return;
         }
 
-        ApiKey apiKey = repository.findByKeyValueAndActiveTrue(apiKeyValue)
+        ApiKeyStore.ApiKeyData apiKey = apiKeyStore.findActive(apiKeyValue)
                 .orElse(null);
 
         if (apiKey == null) {
@@ -63,13 +60,13 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             return;
         }
 
-        if ("DELETE".equalsIgnoreCase(request.getMethod()) && apiKey.getRole() != ApiKeyRole.ADMIN) {
+        if ("DELETE".equalsIgnoreCase(request.getMethod()) && apiKey.role() != ApiKeyRole.ADMIN) {
             escreverErro(response, HttpServletResponse.SC_FORBIDDEN, "Acesso negado", "Operacoes DELETE exigem API Key com role ADMIN.");
             return;
         }
 
-        request.setAttribute(API_KEY_ROLE_ATTRIBUTE, apiKey.getRole());
-        request.setAttribute(API_KEY_VALUE_ATTRIBUTE, apiKey.getKeyValue());
+        request.setAttribute(API_KEY_ROLE_ATTRIBUTE, apiKey.role());
+        request.setAttribute(API_KEY_VALUE_ATTRIBUTE, apiKey.keyValue());
         filterChain.doFilter(request, response);
     }
 

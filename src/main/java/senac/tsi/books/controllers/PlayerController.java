@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
-import senac.tsi.books.dto.PlayerDTOV2;
 import senac.tsi.books.entities.Player;
 import senac.tsi.books.entities.Team;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
@@ -33,7 +32,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping({"/players", "/api/v1/players"})
+@RequestMapping("/api/v1/players")
 @Tag(name = "Jogadores")
 @DefaultApiResponses
 public class PlayerController {
@@ -44,35 +43,19 @@ public class PlayerController {
     @Autowired
     private TeamRepository teamRepository;
 
-    @Operation(summary = "Listar jogadores - v1", description = "Retorna todos os jogadores com paginacao. Disponivel em /players e /api/v1/players.")
+    @Operation(summary = "Listar jogadores - v1", description = "Retorna todos os jogadores com paginacao")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @GetMapping
     public PagedModel<EntityModel<Player>> listar(Pageable pageable) {
         return PagedModelBuilder.from(repository.findAll(pageable), this::montarModelo);
     }
 
-    @Operation(summary = "Buscar jogador por ID - compatibilidade/v1", description = "Retorna um jogador com HATEOAS. Quando X-API-Version nao e informado, usa v1.")
+    @Operation(summary = "Buscar jogador por ID - v1", description = "Retorna um jogador com HATEOAS")
     @ApiResponse(responseCode = "200", description = "Jogador encontrado")
     @ApiResponse(responseCode = "404", description = "Jogador nao encontrado")
-    @GetMapping(value = "/{id}", headers = "!X-API-Version")
+    @GetMapping("/{id}")
     public EntityModel<Player> buscarPorId(@PathVariable Long id) {
         return montarModelo(buscarPlayer(id));
-    }
-
-    @Operation(summary = "Buscar jogador por ID - v1", description = "Retorna um jogador com HATEOAS usando X-API-Version=1")
-    @ApiResponse(responseCode = "200", description = "Jogador encontrado")
-    @ApiResponse(responseCode = "404", description = "Jogador nao encontrado")
-    @GetMapping(value = "/{id}", headers = "X-API-Version=1")
-    public EntityModel<Player> buscarPorIdV1(@PathVariable Long id) {
-        return montarModelo(buscarPlayer(id));
-    }
-
-    @Operation(summary = "Buscar jogador por ID - v2", description = "Retorna um DTO resumido usando X-API-Version=2")
-    @ApiResponse(responseCode = "200", description = "Jogador encontrado")
-    @ApiResponse(responseCode = "404", description = "Jogador nao encontrado")
-    @GetMapping(value = "/{id}", headers = "X-API-Version=2")
-    public PlayerDTOV2 buscarPorIdV2(@PathVariable Long id) {
-        return new PlayerDTOV2(buscarPlayer(id));
     }
 
     @Operation(summary = "Criar jogador", description = "Cria um novo jogador")

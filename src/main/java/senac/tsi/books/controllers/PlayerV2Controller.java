@@ -49,7 +49,7 @@ public class PlayerV2Controller {
         Long id = player.getId();
         return EntityModel.of(player,
                 linkTo(methodOn(PlayerV2Controller.class).buscarPorId(id)).withSelfRel(),
-                linkTo(methodOn(PlayerController.class).buscarPorIdV1(id)).withRel("v1"),
+                linkTo(methodOn(PlayerController.class).buscarPorId(id)).withRel("v1"),
                 linkTo(methodOn(PlayerV2Controller.class).listar(Pageable.unpaged())).withRel("lista-jogadores-v2")
         );
     }

@@ -32,55 +32,55 @@ class BooksApplicationTests {
 
     @Test
     void dadosIniciaisDeLolSaoCarregados() throws Exception {
-        mockMvc.perform(get("/champions").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+        mockMvc.perform(get("/api/v1/champions").header("X-API-Key", ADMIN_KEY).param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(32)));
 
-        mockMvc.perform(get("/teams").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+        mockMvc.perform(get("/api/v1/teams").header("X-API-Key", ADMIN_KEY).param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(6)));
 
-        mockMvc.perform(get("/players").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+        mockMvc.perform(get("/api/v1/players").header("X-API-Key", ADMIN_KEY).param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(30)));
 
-        mockMvc.perform(get("/matchgames").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+        mockMvc.perform(get("/api/v1/matchgames").header("X-API-Key", ADMIN_KEY).param("size", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(8)));
     }
 
     @Test
     void endpointsDeBuscaPorIdNaoRetornamErroInterno() throws Exception {
-        mockMvc.perform(get("/champions/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
-        mockMvc.perform(get("/players/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
-        mockMvc.perform(get("/teams/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
-        mockMvc.perform(get("/coaches/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
-        mockMvc.perform(get("/matchgames/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/champions/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/players/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/teams/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/coaches/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/matchgames/1").header("X-API-Key", ADMIN_KEY)).andExpect(status().isOk());
     }
 
     @Test
     void buscasCustomizadasSaoPaginadas() throws Exception {
-        mockMvc.perform(get("/champions/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "ori").param("size", "2"))
+        mockMvc.perform(get("/api/v1/champions/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "ori").param("size", "2"))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/players/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "lee").param("size", "2"))
+        mockMvc.perform(get("/api/v1/players/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "lee").param("size", "2"))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/teams/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "t").param("size", "2"))
+        mockMvc.perform(get("/api/v1/teams/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "t").param("size", "2"))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/coaches/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "k").param("size", "2"))
+        mockMvc.perform(get("/api/v1/coaches/buscar").header("X-API-Key", ADMIN_KEY).param("nome", "k").param("size", "2"))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/matchgames/buscar").header("X-API-Key", ADMIN_KEY).param("duracao", "3").param("size", "2"))
+        mockMvc.perform(get("/api/v1/matchgames/buscar").header("X-API-Key", ADMIN_KEY).param("duracao", "3").param("size", "2"))
                 .andExpect(status().isOk());
     }
 
     @Test
     void apiKeyEObrigatoriaNosEndpointsProtegidos() throws Exception {
-        mockMvc.perform(get("/champions/1"))
+        mockMvc.perform(get("/api/v1/champions/1"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void usuarioComumNaoPodeDeletar() throws Exception {
-        mockMvc.perform(delete("/champions/1").header("X-API-Key", "user-test-key"))
+        mockMvc.perform(delete("/api/v1/champions/1").header("X-API-Key", "user-test-key"))
                 .andExpect(status().isForbidden());
     }
 
@@ -97,7 +97,7 @@ class BooksApplicationTests {
     void endpointPublicoGeraApiKeyAdminPorPadraoParaTestarTodaApi() throws Exception {
         String apiKey = gerarApiKeyPadrao("admin-gerado-padrao");
 
-        MvcResult criado = mockMvc.perform(post("/champions")
+        MvcResult criado = mockMvc.perform(post("/api/v1/champions")
                         .header("X-API-Key", apiKey)
                         .header("X-Idempotency-Key", "admin-generated-can-create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -107,7 +107,7 @@ class BooksApplicationTests {
 
         Long id = extrairId(criado.getResponse().getContentAsString());
 
-        mockMvc.perform(delete("/champions/" + id).header("X-API-Key", apiKey))
+        mockMvc.perform(delete("/api/v1/champions/" + id).header("X-API-Key", apiKey))
                 .andExpect(status().isNoContent());
     }
 
@@ -141,14 +141,14 @@ class BooksApplicationTests {
                 }
                 """;
 
-        mockMvc.perform(post("/champions")
+        mockMvc.perform(post("/api/v1/champions")
                         .header("X-API-Key", apiKey)
                         .header("X-Idempotency-Key", "champion-idempotency-test")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/champions")
+        mockMvc.perform(post("/api/v1/champions")
                         .header("X-API-Key", apiKey)
                         .header("X-Idempotency-Key", "champion-idempotency-test")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -161,14 +161,14 @@ class BooksApplicationTests {
     void idempotenciaRejeitaMesmaChaveEmOutroEndpoint() throws Exception {
         String apiKey = gerarApiKey("idempotency-conflict-test", "ADMIN");
 
-        mockMvc.perform(post("/champions")
+        mockMvc.perform(post("/api/v1/champions")
                         .header("X-API-Key", apiKey)
                         .header("X-Idempotency-Key", "same-key-other-endpoint")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Conflito Idempotente\",\"role\":\"MID\"}"))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/coaches")
+        mockMvc.perform(post("/api/v1/coaches")
                         .header("X-API-Key", apiKey)
                         .header("X-Idempotency-Key", "same-key-other-endpoint")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -180,24 +180,15 @@ class BooksApplicationTests {
     void rateLimitPermiteApenas20RequisicoesPorMinuto() throws Exception {
         String apiKey = gerarApiKey("rate-limit-test", "ADMIN");
         for (int i = 0; i < 20; i++) {
-            mockMvc.perform(get("/champions/1").header("X-API-Key", apiKey))
+            mockMvc.perform(get("/api/v1/champions/1").header("X-API-Key", apiKey))
                     .andExpect(status().isOk())
                     .andExpect(header().string("X-RateLimit-Limit", "20"));
         }
 
-        mockMvc.perform(get("/champions/1").header("X-API-Key", apiKey))
+        mockMvc.perform(get("/api/v1/champions/1").header("X-API-Key", apiKey))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(header().string("X-RateLimit-Limit", "20"))
                 .andExpect(header().exists("Retry-After"));
-    }
-
-    @Test
-    void versionamentoPorHeaderRetornaV2Resumida() throws Exception {
-        mockMvc.perform(get("/players/1")
-                        .header("X-API-Key", ADMIN_KEY)
-                        .header("X-API-Version", "2"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.teamNome", is("T1")));
     }
 
     private String gerarApiKey(String username, String role) throws Exception {

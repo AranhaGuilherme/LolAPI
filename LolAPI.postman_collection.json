@@ -35,7 +35,7 @@
             "value": "{{apiKey}}"
           }
         ],
-        "url": "{{baseUrl}}/champions?page=0&size=5"
+        "url": "{{baseUrl}}/api/v1/champions?page=0&size=5"
       }
     },
     {
@@ -48,7 +48,7 @@
             "value": "{{apiKey}}"
           }
         ],
-        "url": "{{baseUrl}}/champions/1"
+        "url": "{{baseUrl}}/api/v1/champions/1"
       }
     },
     {
@@ -73,7 +73,7 @@
           "mode": "raw",
           "raw": "{\n  \"nome\": \"Ahri\",\n  \"role\": \"MID\"\n}"
         },
-        "url": "{{baseUrl}}/champions"
+        "url": "{{baseUrl}}/api/v1/champions"
       }
     },
     {
@@ -84,13 +84,9 @@
           {
             "key": "X-API-Key",
             "value": "{{apiKey}}"
-          },
-          {
-            "key": "X-API-Version",
-            "value": "1"
           }
         ],
-        "url": "{{baseUrl}}/players/1"
+        "url": "{{baseUrl}}/api/v1/players/1"
       }
     },
     {
@@ -101,13 +97,9 @@
           {
             "key": "X-API-Key",
             "value": "{{apiKey}}"
-          },
-          {
-            "key": "X-API-Version",
-            "value": "2"
           }
         ],
-        "url": "{{baseUrl}}/players/1"
+        "url": "{{baseUrl}}/api/v2/players/1"
       }
     },
     {
@@ -120,7 +112,7 @@
             "value": "{{apiKey}}"
           }
         ],
-        "url": "{{baseUrl}}/teams?page=0&size=5"
+        "url": "{{baseUrl}}/api/v1/teams?page=0&size=5"
       }
     },
     {
@@ -133,7 +125,7 @@
             "value": "{{apiKey}}"
           }
         ],
-        "url": "{{baseUrl}}/coaches?page=0&size=5"
+        "url": "{{baseUrl}}/api/v1/coaches?page=0&size=5"
       }
     },
     {
@@ -146,14 +138,14 @@
             "value": "{{apiKey}}"
           }
         ],
-        "url": "{{baseUrl}}/matchgames?page=0&size=5"
+        "url": "{{baseUrl}}/api/v1/matchgames?page=0&size=5"
       }
     },
     {
       "name": "Erro 401 - Sem API Key",
       "request": {
         "method": "GET",
-        "url": "{{baseUrl}}/champions/1"
+        "url": "{{baseUrl}}/api/v1/champions/1"
       }
     },
     {
@@ -166,7 +158,7 @@
             "value": "user-test-key"
           }
         ],
-        "url": "{{baseUrl}}/champions/1"
+        "url": "{{baseUrl}}/api/v1/champions/1"
       }
     }
   ]

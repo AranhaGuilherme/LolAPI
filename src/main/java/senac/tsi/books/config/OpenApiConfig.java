@@ -1,11 +1,8 @@
 package senac.tsi.books.config;
 
 import io.swagger.v3.oas.models.Components;
-import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
@@ -38,13 +35,8 @@ public class OpenApiConfig {
                                 **Rate limit:** limite fixo de 20 requisicoes por minuto por cliente/chave.
 
                                 **Versionamento:** rotas v1 estao disponiveis em `/api/v1/...`; a v2 demonstrativa de jogadores esta em `/api/v2/players`.
-                                Tambem existe suporte por header em `/players/{id}` usando `X-API-Version: 1` ou `X-API-Version: 2`.
                                 """)
-                        .contact(new Contact()
-                                .name("Projeto Senac TSI")
-                                .url("https://github.com/"))
-                        .license(new License()
-                                .name("Uso academico")))
+                )
                 .servers(List.of(
                         new Server().url("http://localhost:8080").description("Ambiente local")
                 ))
@@ -61,9 +53,6 @@ public class OpenApiConfig {
                                 .type(SecurityScheme.Type.APIKEY)
                                 .in(SecurityScheme.In.HEADER)
                                 .name(ApiKeyFilter.API_KEY_HEADER)))
-                .addSecurityItem(new SecurityRequirement().addList(schemeName))
-                .externalDocs(new ExternalDocumentation()
-                        .description("README do projeto com instrucoes de execucao, chaves e exemplos")
-                        .url("https://github.com/"));
+                .addSecurityItem(new SecurityRequirement().addList(schemeName));
     }
 }

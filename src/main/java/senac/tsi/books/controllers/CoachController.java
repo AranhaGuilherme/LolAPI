@@ -21,7 +21,7 @@ import java.net.URI;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
-@RequestMapping({"/coaches", "/api/v1/coaches"})
+@RequestMapping("/api/v1/coaches")
 @Tag(name = "Coaches")
 @DefaultApiResponses
 public class CoachController {

@@ -3,15 +3,12 @@ package senac.tsi.books;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import senac.tsi.books.entities.ApiKey;
-import senac.tsi.books.entities.ApiKeyRole;
 import senac.tsi.books.entities.Champion;
 import senac.tsi.books.entities.Coach;
 import senac.tsi.books.entities.MatchGame;
 import senac.tsi.books.entities.Player;
 import senac.tsi.books.entities.Role;
 import senac.tsi.books.entities.Team;
-import senac.tsi.books.repositories.ApiKeyRepository;
 import senac.tsi.books.repositories.ChampionRepository;
 import senac.tsi.books.repositories.CoachRepository;
 import senac.tsi.books.repositories.MatchGameRepository;
@@ -29,12 +26,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired private TeamRepository teamRepository;
     @Autowired private PlayerRepository playerRepository;
     @Autowired private MatchGameRepository matchGameRepository;
-    @Autowired private ApiKeyRepository apiKeyRepository;
 
     @Override
     public void run(String... args) {
-        seedApiKeys();
-
         if (coachRepository.count() > 0) {
             return;
         }
@@ -42,13 +36,6 @@ public class DataInitializer implements CommandLineRunner {
         Map<String, Champion> champions = seedChampions();
         List<TeamRoster> rosters = seedTeamsAndPlayers(champions);
         seedMatches(rosters, champions);
-    }
-
-    private void seedApiKeys() {
-        if (apiKeyRepository.count() == 0) {
-            apiKeyRepository.save(new ApiKey("professor-admin", "admin-test-key", ApiKeyRole.ADMIN));
-            apiKeyRepository.save(new ApiKey("aluno-user", "user-test-key", ApiKeyRole.USER));
-        }
     }
 
     private Map<String, Champion> seedChampions() {

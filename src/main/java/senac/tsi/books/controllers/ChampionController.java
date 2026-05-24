@@ -30,7 +30,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping({"/champions", "/api/v1/champions"})
+@RequestMapping("/api/v1/champions")
 @Tag(name = "Campeoes")
 @DefaultApiResponses
 public class ChampionController {
