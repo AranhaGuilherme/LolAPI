@@ -2,11 +2,10 @@ package senac.tsi.books.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import senac.tsi.books.config.PagedModelBuilder;
+import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.entities.ApiKey;
 import senac.tsi.books.entities.ApiKeyRole;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
@@ -31,30 +30,28 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api-keys")
+@RequestMapping({"/api-keys", "/api/v1/api-keys"})
+@Tag(name = "API Keys")
+@DefaultApiResponses
 public class ApiKeyController {
 
     @Autowired
     private ApiKeyRepository repository;
 
-    @Operation(summary = "Gerar API Key", description = "Cria uma chave de API para uso no header X-API-Key")
+    @Operation(
+            summary = "Gerar API Key",
+            description = "Cria uma chave de API para uso no header X-API-Key. Endpoint publico para testes; por padrao gera role ADMIN para permitir testar todos os endpoints protegidos."
+    )
     @ApiResponse(responseCode = "201", description = "Chave gerada com sucesso")
     @PostMapping("/generate")
     public ResponseEntity<ApiKey> gerar(
             @RequestParam String username,
-            @RequestParam(defaultValue = "USER") ApiKeyRole role) {
+            @RequestParam(defaultValue = "ADMIN") ApiKeyRole role) {
         ApiKey apiKey = new ApiKey(username, UUID.randomUUID().toString(), role);
         return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(apiKey));
     }
 
-    @Operation(summary = "Listar API Keys", description = "Lista as chaves de API cadastradas com paginacao")
-    @ApiResponse(responseCode = "200", description = "Chaves listadas com sucesso")
-    @GetMapping
-    public PagedModel<EntityModel<ApiKey>> listar(Pageable pageable) {
-        return PagedModelBuilder.from(repository.findAll(pageable), this::montarModelo);
-    }
-
-    @Operation(summary = "Buscar API Key por ID", description = "Retorna uma chave pelo ID")
+    @Operation(summary = "Buscar API Key por ID", description = "Retorna uma chave pelo ID. Nao existe endpoint de listagem de chaves por seguranca.")
     @ApiResponse(responseCode = "200", description = "Chave encontrada")
     @ApiResponse(responseCode = "404", description = "Chave nao encontrada")
     @GetMapping("/{id}")
@@ -91,8 +88,7 @@ public class ApiKeyController {
         return EntityModel.of(apiKey,
                 linkTo(methodOn(ApiKeyController.class).buscarPorId(id)).withSelfRel(),
                 linkTo(methodOn(ApiKeyController.class).atualizar(id, null)).withRel("update"),
-                linkTo(methodOn(ApiKeyController.class).revogar(id)).withRel("revoke"),
-                linkTo(methodOn(ApiKeyController.class).listar(Pageable.unpaged())).withRel("lista-api-keys")
+                linkTo(methodOn(ApiKeyController.class).revogar(id)).withRel("revoke")
         );
     }
 

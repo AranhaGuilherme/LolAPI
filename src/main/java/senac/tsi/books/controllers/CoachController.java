@@ -2,6 +2,7 @@ package senac.tsi.books.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
 import senac.tsi.books.entities.Coach;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
@@ -19,7 +21,9 @@ import java.net.URI;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
-@RequestMapping("/coaches")
+@RequestMapping({"/coaches", "/api/v1/coaches"})
+@Tag(name = "Coaches")
+@DefaultApiResponses
 public class CoachController {
 
     @Autowired

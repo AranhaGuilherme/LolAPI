@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,6 +28,25 @@ class BooksApplicationTests {
 
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void dadosIniciaisDeLolSaoCarregados() throws Exception {
+        mockMvc.perform(get("/champions").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(32)));
+
+        mockMvc.perform(get("/teams").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(6)));
+
+        mockMvc.perform(get("/players").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(30)));
+
+        mockMvc.perform(get("/matchgames").header("X-API-Key", ADMIN_KEY).param("size", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", greaterThanOrEqualTo(8)));
     }
 
     @Test
@@ -71,6 +91,44 @@ class BooksApplicationTests {
                         .param("role", "USER"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.keyValue").exists());
+    }
+
+    @Test
+    void endpointPublicoGeraApiKeyAdminPorPadraoParaTestarTodaApi() throws Exception {
+        String apiKey = gerarApiKeyPadrao("admin-gerado-padrao");
+
+        MvcResult criado = mockMvc.perform(post("/champions")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "admin-generated-can-create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Campeao Gerado Admin\",\"role\":\"MID\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Long id = extrairId(criado.getResponse().getContentAsString());
+
+        mockMvc.perform(delete("/champions/" + id).header("X-API-Key", apiKey))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void apiKeysNaoPossuemEndpointDeListagem() throws Exception {
+        String apiKey = gerarApiKeyPadrao("admin-sem-listagem");
+
+        mockMvc.perform(get("/api-keys").header("X-API-Key", apiKey))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void rotasVersionadasV1EV2EstaoDisponiveis() throws Exception {
+        String apiKey = gerarApiKeyPadrao("admin-versionamento");
+
+        mockMvc.perform(get("/api/v1/players/1").header("X-API-Key", apiKey))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v2/players/1").header("X-API-Key", apiKey))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.teamNome", is("T1")));
     }
 
     @Test
@@ -153,5 +211,26 @@ class BooksApplicationTests {
         int start = body.indexOf("\"keyValue\":\"") + 12;
         int end = body.indexOf("\"", start);
         return body.substring(start, end);
+    }
+
+    private String gerarApiKeyPadrao(String username) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api-keys/generate")
+                        .param("username", username))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        int start = body.indexOf("\"keyValue\":\"") + 12;
+        int end = body.indexOf("\"", start);
+        return body.substring(start, end);
+    }
+
+    private Long extrairId(String body) {
+        int start = body.indexOf("\"id\":") + 5;
+        int end = body.indexOf(",", start);
+        if (end < 0) {
+            end = body.indexOf("}", start);
+        }
+        return Long.valueOf(body.substring(start, end));
     }
 }

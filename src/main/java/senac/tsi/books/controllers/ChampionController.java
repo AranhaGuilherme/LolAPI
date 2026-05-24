@@ -2,6 +2,7 @@ package senac.tsi.books.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
 import senac.tsi.books.entities.Champion;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
@@ -28,7 +30,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/champions")
+@RequestMapping({"/champions", "/api/v1/champions"})
+@Tag(name = "Campeoes")
+@DefaultApiResponses
 public class ChampionController {
 
     @Autowired

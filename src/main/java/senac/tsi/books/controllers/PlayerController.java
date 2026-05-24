@@ -2,6 +2,7 @@ package senac.tsi.books.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
 import senac.tsi.books.dto.PlayerDTOV2;
 import senac.tsi.books.entities.Player;
@@ -31,7 +33,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/players")
+@RequestMapping({"/players", "/api/v1/players"})
+@Tag(name = "Jogadores")
+@DefaultApiResponses
 public class PlayerController {
 
     @Autowired
@@ -40,14 +44,14 @@ public class PlayerController {
     @Autowired
     private TeamRepository teamRepository;
 
-    @Operation(summary = "Listar jogadores", description = "Retorna todos os jogadores com paginacao")
+    @Operation(summary = "Listar jogadores - v1", description = "Retorna todos os jogadores com paginacao. Disponivel em /players e /api/v1/players.")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @GetMapping
     public PagedModel<EntityModel<Player>> listar(Pageable pageable) {
         return PagedModelBuilder.from(repository.findAll(pageable), this::montarModelo);
     }
 
-    @Operation(summary = "Buscar jogador por ID", description = "Retorna um jogador com HATEOAS. Quando X-API-Version nao e informado, usa v1.")
+    @Operation(summary = "Buscar jogador por ID - compatibilidade/v1", description = "Retorna um jogador com HATEOAS. Quando X-API-Version nao e informado, usa v1.")
     @ApiResponse(responseCode = "200", description = "Jogador encontrado")
     @ApiResponse(responseCode = "404", description = "Jogador nao encontrado")
     @GetMapping(value = "/{id}", headers = "!X-API-Version")

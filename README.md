@@ -51,8 +51,37 @@ X-API-Key: admin-test-key
 Tambem e possivel gerar uma nova chave:
 
 ```http
-POST /api-keys/generate?username=aluno&role=ADMIN
+POST /api-keys/generate?username=aluno
 ```
+
+Por padrao, a chave gerada recebe role `ADMIN`, para facilitar os testes no Swagger e no Postman.
+Tambem e possivel informar `role=USER`, mas `DELETE` exige `ADMIN`.
+Nao existe endpoint para listar chaves de API, para evitar exposicao de chaves cadastradas.
+
+## Versionamento
+
+A API mantem as rotas antigas por compatibilidade e tambem possui rotas versionadas:
+
+- v1: `/api/v1/champions`, `/api/v1/players`, `/api/v1/teams`, `/api/v1/coaches`, `/api/v1/matchgames`
+- v2: `/api/v2/players`
+
+O endpoint `/players/{id}` tambem demonstra versionamento por header:
+
+```http
+GET /players/1
+X-API-Key: admin-test-key
+X-API-Version: 2
+```
+
+## Dados iniciais
+
+Ao iniciar com H2, a API ja carrega uma massa demonstrativa de League of Legends:
+
+- 32 campeoes distribuidos entre `TOP`, `JUNGLE`, `MID`, `ADC` e `SUPPORT`
+- 6 times: `T1`, `Gen.G`, `G2 Esports`, `Fnatic`, `Cloud9` e `LOUD`
+- 30 jogadores, com 5 jogadores por time e campeoes associados
+- 6 coaches, cada um associado a um time
+- 8 partidas com times, vencedor, jogadores e campeoes relacionados
 
 ## Recursos implementados
 
@@ -65,12 +94,14 @@ POST /api-keys/generate?username=aluno&role=ADMIN
 - Bean Validation nas entidades
 - Tratamento global de erros com `@RestControllerAdvice`
 - Swagger/OpenAPI com esquema de seguranca `X-API-Key`
+- Documentacao de erros `400`, `401`, `403`, `404`, `409`, `429` e `500`
 - API Key com roles `USER` e `ADMIN`
 - `DELETE` exige chave `ADMIN`
+- Geracao publica de API Key de teste, com `ADMIN` como padrao
 - Idempotencia em `POST` com `X-Idempotency-Key`
 - Rate limit fixo de **20 requisicoes por minuto**
 - CORS configurado para frontends locais
-- Versionamento por header em `/players/{id}` com `X-API-Version`
+- Versionamento por path em `/api/v1/...` e `/api/v2/players`, alem do header `X-API-Version`
 
 ## Exemplos
 
@@ -115,4 +146,4 @@ Idempotency-Replayed: true
 mvnw.cmd test
 ```
 
-Os testes verificam contexto da aplicacao, buscas por ID, buscas paginadas, API Key, permissao de `DELETE`, idempotencia, rate limit de 20/min e versionamento por header.
+Os testes verificam contexto da aplicacao, carga inicial de dados de LoL, buscas por ID, buscas paginadas, API Key, permissao de `DELETE`, geracao de chave `ADMIN`, ausencia de listagem de chaves, idempotencia, rate limit de 20/min e versionamento por path/header.

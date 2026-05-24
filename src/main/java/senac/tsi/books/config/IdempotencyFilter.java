@@ -97,9 +97,14 @@ public class IdempotencyFilter extends OncePerRequestFilter {
 
     private boolean isDomainPost(String path) {
         return path.equals("/champions")
+                || path.equals("/api/v1/champions")
                 || path.equals("/players")
+                || path.equals("/api/v1/players")
                 || path.equals("/teams")
+                || path.equals("/api/v1/teams")
                 || path.equals("/coaches")
-                || path.equals("/matchgames");
+                || path.equals("/api/v1/coaches")
+                || path.equals("/matchgames")
+                || path.equals("/api/v1/matchgames");
     }
 }

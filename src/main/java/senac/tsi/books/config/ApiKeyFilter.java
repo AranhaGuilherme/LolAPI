@@ -38,6 +38,7 @@ public class ApiKeyFilter extends OncePerRequestFilter {
                 || path.equals("/")
                 || path.equals("/error")
                 || path.startsWith("/api-keys/generate")
+                || path.startsWith("/api/v1/api-keys/generate")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/api-docs")
                 || path.startsWith("/v3/api-docs")
