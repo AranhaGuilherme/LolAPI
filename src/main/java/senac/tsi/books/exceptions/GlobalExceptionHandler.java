@@ -1,5 +1,7 @@
 package senac.tsi.books.exceptions;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,87 +23,96 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<Map<String, Object>> handleRecursoNaoEncontrado(RecursoNaoEncontradoException ex) {
-        Map<String, Object> erro = new HashMap<>();
-        erro.put("status", 404);
-        erro.put("erro", "Recurso não encontrado");
-        erro.put("mensagem", ex.getMessage());
-        erro.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+        return erro(HttpStatus.NOT_FOUND, "Recurso nao encontrado", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidacao(MethodArgumentNotValidException ex) {
-        Map<String, Object> erro = new HashMap<>();
         Map<String, String> campos = new HashMap<>();
 
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             campos.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
 
-        erro.put("status", 400);
-        erro.put("erro", "Erro de validação");
+        Map<String, Object> erro = corpo(HttpStatus.BAD_REQUEST, "Erro de validacao", "Um ou mais campos contem dados invalidos.");
         erro.put("campos", campos);
-        erro.put("timestamp", LocalDateTime.now().toString());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> campos = new HashMap<>();
+
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            campos.put(violation.getPropertyPath().toString(), violation.getMessage());
+        }
+
+        Map<String, Object> erro = corpo(HttpStatus.BAD_REQUEST, "Erro de validacao", "Um ou mais campos contem dados invalidos.");
+        erro.put("campos", campos);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleRegraDeNegocio(IllegalArgumentException ex) {
+        return erro(HttpStatus.BAD_REQUEST, "Regra de negocio invalida", ex.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleJsonInvalido(HttpMessageNotReadableException ex) {
-        Map<String, Object> erro = new HashMap<>();
-        erro.put("status", 400);
-        erro.put("erro", "Requisição inválida");
-        erro.put("mensagem", "JSON inválido ou valor não permitido. Verifique os campos enviados (ex: role deve ser TOP, JUNGLE, MID, ADC ou SUPPORT).");
-        erro.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+        return erro(
+                HttpStatus.BAD_REQUEST,
+                "Requisicao invalida",
+                "JSON invalido ou valor nao permitido. Verifique tipos, enums e campos enviados."
+        );
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> handleTipoInvalido(MethodArgumentTypeMismatchException ex) {
-        Map<String, Object> erro = new HashMap<>();
-        erro.put("status", 400);
-        erro.put("erro", "Parâmetro inválido");
-        erro.put("mensagem", "O valor '" + ex.getValue() + "' não é válido para o parâmetro '" + ex.getName() + "'. Esperado: número inteiro.");
-        erro.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+        return erro(
+                HttpStatus.BAD_REQUEST,
+                "Parametro invalido",
+                "O valor '" + ex.getValue() + "' nao e valido para o parametro '" + ex.getName() + "'."
+        );
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleParametroAusente(MissingServletRequestParameterException ex) {
-        Map<String, Object> erro = new HashMap<>();
-        erro.put("status", 400);
-        erro.put("erro", "Parâmetro obrigatório ausente");
-        erro.put("mensagem", "O parâmetro '" + ex.getParameterName() + "' é obrigatório e não foi informado.");
-        erro.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+        return erro(
+                HttpStatus.BAD_REQUEST,
+                "Parametro obrigatorio ausente",
+                "O parametro '" + ex.getParameterName() + "' e obrigatorio e nao foi informado."
+        );
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleIntegridade(DataIntegrityViolationException ex) {
-        Map<String, Object> erro = new HashMap<>();
-        erro.put("status", 400);
-        erro.put("erro", "Violação de integridade");
-        erro.put("mensagem", "Operação inválida: verifique se os IDs de entidades relacionadas existem e se não há duplicatas.");
-        erro.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+        return erro(
+                HttpStatus.CONFLICT,
+                "Violacao de integridade",
+                "Operacao invalida: verifique IDs relacionados, duplicidades ou registros vinculados."
+        );
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleEndpointNaoEncontrado(NoResourceFoundException ex) {
-        Map<String, Object> erro = new HashMap<>();
-        erro.put("status", 404);
-        erro.put("erro", "Endpoint não encontrado");
-        erro.put("mensagem", "O caminho '" + ex.getResourcePath() + "' não existe nesta API.");
-        erro.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro);
+        return erro(HttpStatus.NOT_FOUND, "Endpoint nao encontrado", "O caminho '" + ex.getResourcePath() + "' nao existe nesta API.");
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleErroGenerico(Exception ex) {
+        return erro(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno do servidor", "Ocorreu um erro inesperado. Tente novamente mais tarde.");
+    }
+
+    private ResponseEntity<Map<String, Object>> erro(HttpStatus status, String titulo, String mensagem) {
+        return ResponseEntity.status(status).body(corpo(status, titulo, mensagem));
+    }
+
+    private Map<String, Object> corpo(HttpStatus status, String titulo, String mensagem) {
         Map<String, Object> erro = new HashMap<>();
-        erro.put("status", 500);
-        erro.put("erro", "Erro interno do servidor");
-        erro.put("mensagem", "Ocorreu um erro inesperado. Tente novamente mais tarde.");
+        erro.put("status", status.value());
+        erro.put("erro", titulo);
+        erro.put("mensagem", mensagem);
         erro.put("timestamp", LocalDateTime.now().toString());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro);
+        return erro;
     }
 }

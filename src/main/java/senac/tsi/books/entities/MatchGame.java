@@ -1,10 +1,17 @@
 package senac.tsi.books.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 import java.util.List;
 
@@ -15,22 +22,25 @@ public class MatchGame {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Duração da partida não pode estar vazia")
-    @Size(min = 1, max = 10, message = "Duração deve ter no máximo 10 caracteres (ex: 35:00)")
+    @NotBlank(message = "Duracao da partida nao pode estar vazia")
+    @Pattern(regexp = "^([0-9]{2,3}):[0-5][0-9]$", message = "Duracao deve estar no formato MM:SS, como 35:00 ou 115:30")
     private String duracao;
 
-    @NotNull(message = "Time A é obrigatório")
+    @NotNull(message = "Time A e obrigatorio")
     @ManyToOne
     @JoinColumn(name = "time_a_id")
+    @JsonIgnoreProperties({"players", "coach"})
     private Team timeA;
 
-    @NotNull(message = "Time B é obrigatório")
+    @NotNull(message = "Time B e obrigatorio")
     @ManyToOne
     @JoinColumn(name = "time_b_id")
+    @JsonIgnoreProperties({"players", "coach"})
     private Team timeB;
 
     @ManyToOne
     @JoinColumn(name = "vencedor_id")
+    @JsonIgnoreProperties({"players", "coach"})
     private Team vencedor;
 
     @ManyToMany
@@ -39,7 +49,7 @@ public class MatchGame {
             joinColumns = @JoinColumn(name = "match_id"),
             inverseJoinColumns = @JoinColumn(name = "player_id")
     )
-    @JsonIgnore
+    @JsonIgnoreProperties({"team", "champions"})
     private List<Player> players;
 
     @ManyToMany
@@ -48,7 +58,7 @@ public class MatchGame {
             joinColumns = @JoinColumn(name = "match_id"),
             inverseJoinColumns = @JoinColumn(name = "champion_id")
     )
-    @JsonIgnore
+    @JsonIgnoreProperties({"players"})
     private List<Champion> champions;
 
     public MatchGame() {}
@@ -57,18 +67,14 @@ public class MatchGame {
         this.duracao = duracao;
     }
 
-    // GETTERS
     public Long getId() { return id; }
     public String getDuracao() { return duracao; }
     public Team getTimeA() { return timeA; }
     public Team getTimeB() { return timeB; }
     public Team getVencedor() { return vencedor; }
-    @JsonIgnore
     public List<Player> getPlayers() { return players; }
-    @JsonIgnore
     public List<Champion> getChampions() { return champions; }
 
-    // SETTERS
     public void setId(Long id) { this.id = id; }
     public void setDuracao(String duracao) { this.duracao = duracao; }
     public void setTimeA(Team timeA) { this.timeA = timeA; }

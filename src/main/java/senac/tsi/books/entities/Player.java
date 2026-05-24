@@ -1,7 +1,16 @@
 package senac.tsi.books.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -15,20 +24,21 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Nome do jogador não pode estar vazio")
+    @NotBlank(message = "Nome do jogador nao pode estar vazio")
     @Size(min = 2, max = 100, message = "Nome do jogador deve ter entre 2 e 100 caracteres")
     private String nome;
 
-    @NotBlank(message = "Nick do jogador não pode estar vazio")
+    @NotBlank(message = "Nick do jogador nao pode estar vazio")
     @Size(min = 2, max = 50, message = "Nick do jogador deve ter entre 2 e 50 caracteres")
     private String nick;
 
-    @NotNull(message = "Role do jogador é obrigatório (TOP, JUNGLE, MID, ADC, SUPPORT)")
+    @NotNull(message = "Role do jogador e obrigatoria (TOP, JUNGLE, MID, ADC, SUPPORT)")
     @Enumerated(EnumType.STRING)
     private Role role;
 
     @ManyToOne
     @JoinColumn(name = "team_id")
+    @JsonIgnoreProperties({"players"})
     private Team team;
 
     @ManyToMany
@@ -37,7 +47,7 @@ public class Player {
             joinColumns = @JoinColumn(name = "player_id"),
             inverseJoinColumns = @JoinColumn(name = "champion_id")
     )
-    @JsonIgnore
+    @JsonIgnoreProperties({"players"})
     private List<Champion> champions;
 
     public Player() {}
@@ -48,16 +58,13 @@ public class Player {
         this.role = role;
     }
 
-    // GETTERS
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public String getNick() { return nick; }
     public Role getRole() { return role; }
     public Team getTeam() { return team; }
-    @JsonIgnore
     public List<Champion> getChampions() { return champions; }
 
-    // SETTERS
     public void setId(Long id) { this.id = id; }
     public void setNome(String nome) { this.nome = nome; }
     public void setNick(String nick) { this.nick = nick; }

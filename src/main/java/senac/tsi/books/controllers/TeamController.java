@@ -4,22 +4,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.http.HttpStatus;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import senac.tsi.books.config.PagedModelBuilder;
 import senac.tsi.books.entities.Coach;
 import senac.tsi.books.entities.Team;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
 import senac.tsi.books.repositories.CoachRepository;
 import senac.tsi.books.repositories.TeamRepository;
 
-import org.springframework.data.domain.PageRequest;
-
-import java.util.List;
+import java.net.URI;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
@@ -33,68 +30,75 @@ public class TeamController {
     @Autowired
     private CoachRepository coachRepository;
 
-    @Operation(summary = "Listar times", description = "Retorna todos os times cadastrados com paginação")
+    @Operation(summary = "Listar times", description = "Retorna times cadastrados com paginacao e HATEOAS")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @GetMapping
-    public Page<Team> listar(Pageable pageable) {
-        return repository.findAll(pageable);
+    public PagedModel<EntityModel<Team>> listar(Pageable pageable) {
+        return PagedModelBuilder.from(repository.findAll(pageable), this::montarModelo);
     }
 
-    @Operation(summary = "Buscar time por ID", description = "Retorna um time específico pelo ID")
+    @Operation(summary = "Buscar time por ID", description = "Retorna um time especifico pelo ID")
     @ApiResponse(responseCode = "200", description = "Time encontrado")
-    @ApiResponse(responseCode = "404", description = "Time não encontrado")
+    @ApiResponse(responseCode = "404", description = "Time nao encontrado")
     @GetMapping("/{id}")
     public EntityModel<Team> buscarPorId(@PathVariable Long id) {
-        Team team = repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + id + " não encontrado"));
-
-        return EntityModel.of(team,
-                linkTo(methodOn(TeamController.class).buscarPorId(id)).withSelfRel(),
-                linkTo(methodOn(TeamController.class).listar(PageRequest.of(0, 10))).withRel("lista-times")
-        );
+        return montarModelo(buscarTeam(id));
     }
 
     @Operation(summary = "Criar time", description = "Cria um novo time no sistema")
     @ApiResponse(responseCode = "201", description = "Time criado com sucesso")
-    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping
     public ResponseEntity<Team> criar(@Valid @RequestBody Team team) {
         team.setCoach(resolverCoach(team.getCoach()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(team));
+        Team salvo = repository.save(team);
+        URI location = linkTo(methodOn(TeamController.class).buscarPorId(salvo.getId())).toUri();
+        return ResponseEntity.created(location).body(salvo);
     }
 
     @Operation(summary = "Atualizar time", description = "Atualiza os dados de um time existente")
     @ApiResponse(responseCode = "200", description = "Time atualizado com sucesso")
-    @ApiResponse(responseCode = "404", description = "Time não encontrado")
-    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    @ApiResponse(responseCode = "404", description = "Time nao encontrado")
+    @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PutMapping("/{id}")
     public ResponseEntity<Team> atualizar(@PathVariable Long id, @Valid @RequestBody Team team) {
-        Team existente = repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + id + " não encontrado"));
-
+        Team existente = buscarTeam(id);
         existente.setNome(team.getNome());
         existente.setRegiao(team.getRegiao());
         existente.setCoach(resolverCoach(team.getCoach()));
-
         return ResponseEntity.ok(repository.save(existente));
     }
 
     @Operation(summary = "Deletar time", description = "Remove um time do sistema")
     @ApiResponse(responseCode = "204", description = "Time removido com sucesso")
-    @ApiResponse(responseCode = "404", description = "Time não encontrado")
+    @ApiResponse(responseCode = "404", description = "Time nao encontrado")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        repository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + id + " não encontrado"));
+        buscarTeam(id);
         repository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Buscar time por nome", description = "Busca times que contenham o nome informado")
+    @Operation(summary = "Buscar time por nome", description = "Busca times que contenham o nome informado com paginacao")
     @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
     @GetMapping("/buscar")
-    public List<Team> buscarPorNome(@RequestParam String nome) {
-        return repository.findByNomeContaining(nome);
+    public PagedModel<EntityModel<Team>> buscarPorNome(@RequestParam String nome, Pageable pageable) {
+        return PagedModelBuilder.from(repository.findByNomeContainingIgnoreCase(nome, pageable), this::montarModelo);
+    }
+
+    private EntityModel<Team> montarModelo(Team team) {
+        Long id = team.getId();
+        return EntityModel.of(team,
+                linkTo(methodOn(TeamController.class).buscarPorId(id)).withSelfRel(),
+                linkTo(methodOn(TeamController.class).atualizar(id, null)).withRel("update"),
+                linkTo(methodOn(TeamController.class).deletar(id)).withRel("delete"),
+                linkTo(methodOn(TeamController.class).listar(Pageable.unpaged())).withRel("lista-times")
+        );
+    }
+
+    private Team buscarTeam(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + id + " nao encontrado"));
     }
 
     private Coach resolverCoach(Coach coach) {
@@ -102,6 +106,6 @@ public class TeamController {
             return null;
         }
         return coachRepository.findById(coach.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Coach com ID " + coach.getId() + " não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Coach com ID " + coach.getId() + " nao encontrado"));
     }
 }

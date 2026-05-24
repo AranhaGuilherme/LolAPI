@@ -1,0 +1,173 @@
+{
+  "info": {
+    "name": "LolAPI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "apiKey",
+      "value": "admin-test-key"
+    },
+    {
+      "key": "idempotencyKey",
+      "value": "postman-champion-001"
+    }
+  ],
+  "item": [
+    {
+      "name": "Gerar API Key",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api-keys/generate?username=postman&role=ADMIN"
+      }
+    },
+    {
+      "name": "Champions - Listar",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/champions?page=0&size=5"
+      }
+    },
+    {
+      "name": "Champions - Buscar por ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/champions/1"
+      }
+    },
+    {
+      "name": "Champions - Criar com Idempotencia",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "X-Idempotency-Key",
+            "value": "{{idempotencyKey}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Ahri\",\n  \"role\": \"MID\"\n}"
+        },
+        "url": "{{baseUrl}}/champions"
+      }
+    },
+    {
+      "name": "Players - Buscar v1",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "X-API-Version",
+            "value": "1"
+          }
+        ],
+        "url": "{{baseUrl}}/players/1"
+      }
+    },
+    {
+      "name": "Players - Buscar v2",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          },
+          {
+            "key": "X-API-Version",
+            "value": "2"
+          }
+        ],
+        "url": "{{baseUrl}}/players/1"
+      }
+    },
+    {
+      "name": "Teams - Listar",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/teams?page=0&size=5"
+      }
+    },
+    {
+      "name": "Coaches - Listar",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/coaches?page=0&size=5"
+      }
+    },
+    {
+      "name": "MatchGames - Listar",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/matchgames?page=0&size=5"
+      }
+    },
+    {
+      "name": "Erro 401 - Sem API Key",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/champions/1"
+      }
+    },
+    {
+      "name": "Erro 403 - DELETE com USER",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "user-test-key"
+          }
+        ],
+        "url": "{{baseUrl}}/champions/1"
+      }
+    }
+  ]
+}

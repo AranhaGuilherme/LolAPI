@@ -1,4 +1,4 @@
-c<# : batch portion
+<# : batch portion
 @REM ----------------------------------------------------------------------------
 @REM Licensed to the Apache Software Foundation (ASF) under one
 @REM or more contributor license agreements.  See the NOTICE file
@@ -89,10 +89,11 @@ if (-not (Test-Path -Path $MAVEN_M2_PATH)) {
 }
 
 $MAVEN_WRAPPER_DISTS = $null
-if ((Get-Item $MAVEN_M2_PATH).Target[0] -eq $null) {
+$MAVEN_M2_ITEM = Get-Item $MAVEN_M2_PATH
+if (!$MAVEN_M2_ITEM.Target) {
   $MAVEN_WRAPPER_DISTS = "$MAVEN_M2_PATH/wrapper/dists"
 } else {
-  $MAVEN_WRAPPER_DISTS = (Get-Item $MAVEN_M2_PATH).Target[0] + "/wrapper/dists"
+  $MAVEN_WRAPPER_DISTS = $MAVEN_M2_ITEM.Target[0] + "/wrapper/dists"
 }
 
 $MAVEN_HOME_PARENT = "$MAVEN_WRAPPER_DISTS/$distributionUrlNameMain"
@@ -102,6 +103,15 @@ $MAVEN_HOME = "$MAVEN_HOME_PARENT/$MAVEN_HOME_NAME"
 if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
   Write-Verbose "found existing MAVEN_HOME at $MAVEN_HOME"
   Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
+  exit $?
+}
+
+$existingMvn = Get-ChildItem -Path "$MAVEN_WRAPPER_DISTS" -Recurse -Filter "$MVN_CMD" -File -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -like "*$distributionUrlNameMain*bin*$MVN_CMD" } |
+  Select-Object -First 1
+if ($existingMvn) {
+  Write-Verbose "found cached Maven command at $($existingMvn.FullName)"
+  Write-Output "MVN_CMD=$($existingMvn.FullName)"
   exit $?
 }
 
