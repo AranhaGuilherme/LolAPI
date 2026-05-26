@@ -31,9 +31,25 @@ mvnw.cmd spring-boot:run
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - OpenAPI JSON: `http://localhost:8080/api-docs`
 - H2 Console: `http://localhost:8080/h2-console`
+- Front-end local: `http://localhost:5173`
 - JDBC URL: `jdbc:h2:mem:testdb`
 - Usuario: `sa`
 - Senha: vazia
+
+## Front-end
+
+O painel web fica em `frontend/`.
+
+Para rodar localmente:
+
+```bash
+cd frontend
+python -m http.server 5173
+```
+
+Depois acesse `http://localhost:5173`, gere uma API Key no proprio painel e salve a chave para usar os CRUDs.
+
+O front-end gera automaticamente `X-Idempotency-Key` em operacoes `POST`, entao nao e necessario digitar essa chave manualmente no painel.
 
 ## Chaves de teste
 
@@ -99,7 +115,7 @@ Ao iniciar com H2, a API ja carrega uma massa demonstrativa de League of Legends
 - Revogacao de API Key sem endpoint de listagem
 - Idempotencia em `POST` com `X-Idempotency-Key`
 - Rate limit fixo de **20 requisicoes por minuto**
-- CORS configurado para frontends locais
+- CORS configurado para frontends locais, Vercel e GitHub Pages
 - Versionamento demonstrativo separado em `/api-version/v1/...` e `/api-version/v2/...`
 
 ## Exemplos

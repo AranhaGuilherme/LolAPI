@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LolAPI Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegacao principal">
+      <div class="brand-block">
+        <div class="brand-mark" aria-hidden="true">L</div>
+        <div>
+          <p class="eyebrow">LolAPI</p>
+          <h1>Control</h1>
+        </div>
+      </div>
+
+      <nav class="nav-list" id="navList" aria-label="Secoes do painel"></nav>
+
+      <section class="auth-card" aria-labelledby="authTitle">
+        <div class="section-heading">
+          <i data-lucide="key-round" aria-hidden="true"></i>
+          <h2 id="authTitle">Autorizacao</h2>
+        </div>
+
+        <label class="field">
+          <span>URL da API</span>
+          <input id="apiBaseUrl" type="url" placeholder="http://localhost:8080" autocomplete="off">
+        </label>
+
+        <label class="field">
+          <span>Usuario</span>
+          <input id="apiUsername" type="text" placeholder="guilherme" autocomplete="off">
+        </label>
+
+        <button class="btn btn-primary" id="generateKeyButton" type="button">
+          <i data-lucide="sparkles" aria-hidden="true"></i>
+          Gerar chave
+        </button>
+
+        <label class="field">
+          <span>X-API-Key</span>
+          <textarea id="apiKeyInput" rows="3" placeholder="Cole a chave aqui"></textarea>
+        </label>
+
+        <div class="button-row">
+          <button class="btn btn-muted" id="saveKeyButton" type="button">
+            <i data-lucide="save" aria-hidden="true"></i>
+            Salvar
+          </button>
+          <button class="btn btn-danger" id="revokeKeyButton" type="button">
+            <i data-lucide="shield-x" aria-hidden="true"></i>
+            Revogar
+          </button>
+        </div>
+
+        <p class="auth-status" id="authStatus">Sem chave salva.</p>
+      </section>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Painel de controle</p>
+          <h2 id="pageTitle">Visao geral</h2>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-muted" id="refreshButton" type="button">
+            <i data-lucide="refresh-cw" aria-hidden="true"></i>
+            Atualizar
+          </button>
+          <a class="btn btn-ghost" id="swaggerLink" href="http://localhost:8080/swagger-ui.html" target="_blank" rel="noreferrer">
+            <i data-lucide="book-open" aria-hidden="true"></i>
+            Swagger
+          </a>
+        </div>
+      </header>
+
+      <section class="status-strip" aria-label="Status da API">
+        <div>
+          <span class="status-dot" id="connectionDot"></span>
+          <strong id="connectionText">Aguardando conexao</strong>
+        </div>
+        <div>
+          <span>Limite</span>
+          <strong id="rateLimitText">20/min</strong>
+        </div>
+        <div>
+          <span>Ultima acao</span>
+          <strong id="lastActionText">Nenhuma</strong>
+        </div>
+      </section>
+
+      <section class="toast-panel" id="toastPanel" aria-live="polite" aria-atomic="true"></section>
+
+      <section id="content" class="content-area"></section>
+    </main>
+  </div>
+
+  <template id="metricCardTemplate">
+    <article class="metric-card">
+      <div class="metric-icon"></div>
+      <div>
+        <p></p>
+        <strong></strong>
+      </div>
+    </article>
+  </template>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="./app.js" type="module"></script>
+</body>
+</html>
