@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
+import senac.tsi.books.config.RequestIdUtils;
+import senac.tsi.books.dto.MatchGameRequest;
 import senac.tsi.books.entities.Champion;
 import senac.tsi.books.entities.MatchGame;
 import senac.tsi.books.entities.Player;
@@ -70,8 +72,10 @@ public class MatchGameController {
     @ApiResponse(responseCode = "201", description = "Partida criada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping
-    public ResponseEntity<MatchGame> criar(@Valid @RequestBody MatchGame match) {
-        resolverRelacoes(match);
+    public ResponseEntity<MatchGame> criar(@Valid @RequestBody MatchGameRequest request) {
+        MatchGame match = new MatchGame();
+        preencherMatch(match, request);
+        validarTimesObrigatorios(match);
         validarTimesDaPartida(match);
         MatchGame salvo = repository.save(match);
         URI location = linkTo(methodOn(MatchGameController.class).buscarPorId(salvo.getId())).toUri();
@@ -83,16 +87,11 @@ public class MatchGameController {
     @ApiResponse(responseCode = "404", description = "Partida nao encontrada")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PutMapping("/{id}")
-    public ResponseEntity<MatchGame> atualizar(@PathVariable Long id, @Valid @RequestBody MatchGame match) {
+    public ResponseEntity<MatchGame> atualizar(@PathVariable Long id, @Valid @RequestBody MatchGameRequest request) {
         MatchGame existente = buscarMatch(id);
-        existente.setDuracao(match.getDuracao());
-        resolverRelacoes(match);
-        validarTimesDaPartida(match);
-        existente.setTimeA(match.getTimeA());
-        existente.setTimeB(match.getTimeB());
-        existente.setVencedor(match.getVencedor());
-        existente.setPlayers(match.getPlayers());
-        existente.setChampions(match.getChampions());
+        preencherMatch(existente, request);
+        validarTimesObrigatorios(existente);
+        validarTimesDaPartida(existente);
         return ResponseEntity.ok(repository.save(existente));
     }
 
@@ -128,36 +127,34 @@ public class MatchGameController {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Partida com ID " + id + " nao encontrada"));
     }
 
-    private Team resolverTime(Team time) {
-        if (time == null || time.getId() == null) {
+    private Team resolverTime(Long timeId) {
+        if (RequestIdUtils.semIdValido(timeId)) {
             return null;
         }
-        return teamRepository.findById(time.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + time.getId() + " nao encontrado"));
+        return teamRepository.findById(timeId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + timeId + " nao encontrado"));
     }
 
-    private void resolverRelacoes(MatchGame match) {
-        match.setTimeA(resolverTime(match.getTimeA()));
-        match.setTimeB(resolverTime(match.getTimeB()));
-        match.setVencedor(resolverTime(match.getVencedor()));
-
-        if (match.getPlayers() != null) {
-            List<Player> players = match.getPlayers().stream()
-                    .filter(p -> p != null && p.getId() != null)
-                    .map(p -> playerRepository.findById(p.getId())
-                            .orElseThrow(() -> new RecursoNaoEncontradoException("Jogador com ID " + p.getId() + " nao encontrado")))
-                    .collect(Collectors.toList());
-            match.setPlayers(players);
+    private List<Player> resolverPlayers(List<Long> playerIds) {
+        if (playerIds == null) {
+            return null;
         }
-
-        if (match.getChampions() != null) {
-            List<Champion> champions = match.getChampions().stream()
-                    .filter(c -> c != null && c.getId() != null)
-                    .map(c -> championRepository.findById(c.getId())
-                            .orElseThrow(() -> new RecursoNaoEncontradoException("Campeao com ID " + c.getId() + " nao encontrado")))
+        return playerIds.stream()
+                    .filter(id -> !RequestIdUtils.semIdValido(id))
+                    .map(id -> playerRepository.findById(id)
+                            .orElseThrow(() -> new RecursoNaoEncontradoException("Jogador com ID " + id + " nao encontrado")))
                     .collect(Collectors.toList());
-            match.setChampions(champions);
+    }
+
+    private List<Champion> resolverChampions(List<Long> championIds) {
+        if (championIds == null) {
+            return null;
         }
+        return championIds.stream()
+                    .filter(id -> !RequestIdUtils.semIdValido(id))
+                    .map(id -> championRepository.findById(id)
+                            .orElseThrow(() -> new RecursoNaoEncontradoException("Campeao com ID " + id + " nao encontrado")))
+                    .collect(Collectors.toList());
     }
 
     private void validarTimesDaPartida(MatchGame match) {
@@ -171,5 +168,20 @@ public class MatchGameController {
                 && !match.getVencedor().getId().equals(match.getTimeB().getId())) {
             throw new IllegalArgumentException("O vencedor deve ser Time A ou Time B.");
         }
+    }
+
+    private void validarTimesObrigatorios(MatchGame match) {
+        if (match.getTimeA() == null || match.getTimeB() == null) {
+            throw new IllegalArgumentException("Time A e Time B sao obrigatorios. Informe IDs validos maiores que 0.");
+        }
+    }
+
+    private void preencherMatch(MatchGame match, MatchGameRequest request) {
+        match.setDuracao(request.getDuracao());
+        match.setTimeA(resolverTime(request.getTimeAId()));
+        match.setTimeB(resolverTime(request.getTimeBId()));
+        match.setVencedor(resolverTime(request.getVencedorId()));
+        match.setPlayers(resolverPlayers(request.getPlayerIds()));
+        match.setChampions(resolverChampions(request.getChampionIds()));
     }
 }

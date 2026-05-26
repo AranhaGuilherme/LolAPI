@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
+import senac.tsi.books.dto.ChampionRequest;
 import senac.tsi.books.entities.Champion;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
 import senac.tsi.books.repositories.ChampionRepository;
@@ -69,7 +70,9 @@ public class ChampionController {
     @ApiResponse(responseCode = "201", description = "Campeao criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping
-    public ResponseEntity<Champion> criar(@Valid @RequestBody Champion champion) {
+    public ResponseEntity<Champion> criar(@Valid @RequestBody ChampionRequest request) {
+        Champion champion = new Champion();
+        preencherChampion(champion, request);
         Champion salvo = repository.save(champion);
         URI location = linkTo(methodOn(ChampionController.class).buscarPorId(salvo.getId())).toUri();
         return ResponseEntity.created(location).body(salvo);
@@ -80,10 +83,9 @@ public class ChampionController {
     @ApiResponse(responseCode = "404", description = "Campeao nao encontrado")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PutMapping("/{id}")
-    public ResponseEntity<Champion> atualizar(@PathVariable Long id, @Valid @RequestBody Champion champion) {
+    public ResponseEntity<Champion> atualizar(@PathVariable Long id, @Valid @RequestBody ChampionRequest request) {
         Champion existente = buscarChampion(id);
-        existente.setNome(champion.getNome());
-        existente.setRole(champion.getRole());
+        preencherChampion(existente, request);
         return ResponseEntity.ok(repository.save(existente));
     }
 
@@ -117,5 +119,11 @@ public class ChampionController {
     private Champion buscarChampion(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Campeao com ID " + id + " nao encontrado"));
+    }
+
+    private void preencherChampion(Champion champion, ChampionRequest request) {
+        champion.setNome(request.getNome());
+        champion.setRole(request.getRole());
+        champion.setPlayers(null);
     }
 }

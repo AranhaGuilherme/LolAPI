@@ -8,9 +8,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -139,6 +140,90 @@ class BooksApplicationTests {
 
         mockMvc.perform(delete("/api/v1/champions/" + id).header("X-API-Key", apiKey))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void postsComIdZeroGeramIdAutomaticamente() throws Exception {
+        String apiKey = gerarApiKey("id-zero-posts");
+
+        mockMvc.perform(post("/api/v1/champions")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "id-zero-champion")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"nome\":\"Campeao ID Zero\",\"role\":\"MID\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", greaterThan(0)));
+
+        mockMvc.perform(post("/api/v1/coaches")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "id-zero-coach")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"nome\":\"Coach ID Zero\",\"experiencia\":4}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", greaterThan(0)));
+
+        mockMvc.perform(post("/api/v1/teams")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "id-zero-team")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"nome\":\"Time ID Zero\",\"regiao\":\"BR\",\"coachId\":0}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", greaterThan(0)));
+
+        mockMvc.perform(post("/api/v1/players")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "id-zero-player")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"nome\":\"Jogador ID Zero\",\"nick\":\"Zero\",\"role\":\"ADC\",\"teamId\":0,\"championIds\":[0]}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", greaterThan(0)));
+
+        mockMvc.perform(post("/api/v1/matchgames")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "id-zero-matchgame")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "id": 0,
+                                  "duracao": "35:00",
+                                  "timeAId": 1,
+                                  "timeBId": 2,
+                                  "vencedorId": 1,
+                                  "playerIds": [1],
+                                  "championIds": [1]
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", greaterThan(0)));
+    }
+
+    @Test
+    void entradasInvalidasConhecidasNaoRetornamErroInterno() throws Exception {
+        String apiKey = gerarApiKey("sem-erro-500");
+
+        mockMvc.perform(post("/api/v1/players")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "invalid-team-id")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"nome\":\"Jogador Invalido\",\"nick\":\"Invalid\",\"role\":\"ADC\",\"teamId\":999999}"))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(post("/api/v1/matchgames")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "invalid-match-required-teams")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"duracao\":\"35:00\",\"timeAId\":0,\"timeBId\":0}"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/v1/champions")
+                        .header("X-API-Key", apiKey)
+                        .header("X-Idempotency-Key", "invalid-enum")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"id\":0,\"nome\":\"Enum Invalido\",\"role\":\"meio\"}"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(delete("/api/v1/teams/1").header("X-API-Key", apiKey))
+                .andExpect(status().is4xxClientError());
     }
 
     @Test

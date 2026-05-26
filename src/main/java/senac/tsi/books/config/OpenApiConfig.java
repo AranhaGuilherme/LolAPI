@@ -32,6 +32,8 @@ public class OpenApiConfig {
 
                                 **Idempotencia:** operacoes `POST` das entidades principais exigem o header `X-Idempotency-Key`.
 
+                                **Criacao:** em `POST`, envie `id: 0` ou omita o campo `id`; a API deixa o banco gerar o proximo ID automaticamente.
+
                                 **Rate limit:** limite fixo de 20 requisicoes por minuto por cliente/chave.
 
                                 **Versionamento:** o CRUD principal fica em `/api/v1/...`; a demonstracao de v1/v2 fica separada em `/api-version/v1/players/{id}` e `/api-version/v2/players/{id}`.

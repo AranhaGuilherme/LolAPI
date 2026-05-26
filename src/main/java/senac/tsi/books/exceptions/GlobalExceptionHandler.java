@@ -3,9 +3,13 @@ package senac.tsi.books.exceptions;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -90,6 +94,42 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT,
                 "Violacao de integridade",
                 "Operacao invalida: verifique IDs relacionados, duplicidades ou registros vinculados."
+        );
+    }
+
+    @ExceptionHandler(JpaObjectRetrievalFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleReferenciaNaoEncontrada(JpaObjectRetrievalFailureException ex) {
+        return erro(
+                HttpStatus.NOT_FOUND,
+                "Recurso relacionado nao encontrado",
+                "Um dos IDs relacionados informados nao existe."
+        );
+    }
+
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<Map<String, Object>> handleUsoInvalidoDeDados(InvalidDataAccessApiUsageException ex) {
+        return erro(
+                HttpStatus.BAD_REQUEST,
+                "Requisicao invalida",
+                "Verifique os IDs e relacionamentos enviados no corpo da requisicao."
+        );
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleConflitoDeEstado(ObjectOptimisticLockingFailureException ex) {
+        return erro(
+                HttpStatus.CONFLICT,
+                "Conflito de estado",
+                "Nao informe ID manualmente em POST. Use 0 ou omita o campo para o banco gerar automaticamente."
+        );
+    }
+
+    @ExceptionHandler(TransactionSystemException.class)
+    public ResponseEntity<Map<String, Object>> handleErroDeTransacao(TransactionSystemException ex) {
+        return erro(
+                HttpStatus.BAD_REQUEST,
+                "Requisicao invalida",
+                "A operacao nao pode ser concluida com os dados enviados. Verifique campos obrigatorios e relacionamentos."
         );
     }
 

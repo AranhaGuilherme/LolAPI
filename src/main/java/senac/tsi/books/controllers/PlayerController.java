@@ -22,13 +22,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
+import senac.tsi.books.config.RequestIdUtils;
+import senac.tsi.books.dto.PlayerRequest;
+import senac.tsi.books.entities.Champion;
 import senac.tsi.books.entities.Player;
 import senac.tsi.books.entities.Team;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
+import senac.tsi.books.repositories.ChampionRepository;
 import senac.tsi.books.repositories.PlayerRepository;
 import senac.tsi.books.repositories.TeamRepository;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -44,6 +49,9 @@ public class PlayerController {
 
     @Autowired
     private TeamRepository teamRepository;
+
+    @Autowired
+    private ChampionRepository championRepository;
 
     @Operation(summary = "Listar jogadores", description = "Retorna todos os jogadores com paginacao")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
@@ -74,8 +82,9 @@ public class PlayerController {
     @ApiResponse(responseCode = "201", description = "Jogador criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping
-    public ResponseEntity<Player> criar(@Valid @RequestBody Player player) {
-        player.setTeam(resolverTeam(player.getTeam()));
+    public ResponseEntity<Player> criar(@Valid @RequestBody PlayerRequest request) {
+        Player player = new Player();
+        preencherPlayer(player, request);
         Player salvo = repository.save(player);
         URI location = linkTo(methodOn(PlayerController.class).buscarPorId(salvo.getId())).toUri();
         return ResponseEntity.created(location).body(salvo);
@@ -86,13 +95,9 @@ public class PlayerController {
     @ApiResponse(responseCode = "404", description = "Jogador nao encontrado")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PutMapping("/{id}")
-    public ResponseEntity<Player> atualizar(@PathVariable Long id, @Valid @RequestBody Player player) {
+    public ResponseEntity<Player> atualizar(@PathVariable Long id, @Valid @RequestBody PlayerRequest request) {
         Player existente = buscarPlayer(id);
-
-        existente.setNome(player.getNome());
-        existente.setNick(player.getNick());
-        existente.setRole(player.getRole());
-        existente.setTeam(resolverTeam(player.getTeam()));
+        preencherPlayer(existente, request);
 
         return ResponseEntity.ok(repository.save(existente));
     }
@@ -129,11 +134,30 @@ public class PlayerController {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Jogador com ID " + id + " nao encontrado"));
     }
 
-    private Team resolverTeam(Team team) {
-        if (team == null || team.getId() == null) {
+    private Team resolverTeam(Long teamId) {
+        if (RequestIdUtils.semIdValido(teamId)) {
             return null;
         }
-        return teamRepository.findById(team.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + team.getId() + " nao encontrado"));
+        return teamRepository.findById(teamId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + teamId + " nao encontrado"));
+    }
+
+    private List<Champion> resolverChampions(List<Long> championIds) {
+        if (championIds == null) {
+            return null;
+        }
+        return championIds.stream()
+                .filter(id -> !RequestIdUtils.semIdValido(id))
+                .map(id -> championRepository.findById(id)
+                        .orElseThrow(() -> new RecursoNaoEncontradoException("Campeao com ID " + id + " nao encontrado")))
+                .toList();
+    }
+
+    private void preencherPlayer(Player player, PlayerRequest request) {
+        player.setNome(request.getNome());
+        player.setNick(request.getNick());
+        player.setRole(request.getRole());
+        player.setTeam(resolverTeam(request.getTeamId()));
+        player.setChampions(resolverChampions(request.getChampionIds()));
     }
 }

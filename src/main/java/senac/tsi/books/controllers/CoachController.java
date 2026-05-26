@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
+import senac.tsi.books.dto.CoachRequest;
 import senac.tsi.books.entities.Coach;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
 import senac.tsi.books.repositories.CoachRepository;
@@ -60,7 +61,9 @@ public class CoachController {
     @ApiResponse(responseCode = "201", description = "Coach criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping
-    public ResponseEntity<Coach> criar(@Valid @RequestBody Coach coach) {
+    public ResponseEntity<Coach> criar(@Valid @RequestBody CoachRequest request) {
+        Coach coach = new Coach();
+        preencherCoach(coach, request);
         Coach salvo = repository.save(coach);
         URI location = linkTo(methodOn(CoachController.class).buscarPorId(salvo.getId())).toUri();
         return ResponseEntity.created(location).body(salvo);
@@ -71,10 +74,9 @@ public class CoachController {
     @ApiResponse(responseCode = "404", description = "Coach nao encontrado")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PutMapping("/{id}")
-    public ResponseEntity<Coach> atualizar(@PathVariable Long id, @Valid @RequestBody Coach coach) {
+    public ResponseEntity<Coach> atualizar(@PathVariable Long id, @Valid @RequestBody CoachRequest request) {
         Coach existente = buscarCoach(id);
-        existente.setNome(coach.getNome());
-        existente.setExperiencia(coach.getExperiencia());
+        preencherCoach(existente, request);
         return ResponseEntity.ok(repository.save(existente));
     }
 
@@ -108,5 +110,11 @@ public class CoachController {
     private Coach buscarCoach(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Coach com ID " + id + " nao encontrado"));
+    }
+
+    private void preencherCoach(Coach coach, CoachRequest request) {
+        coach.setNome(request.getNome());
+        coach.setExperiencia(request.getExperiencia());
+        coach.setTeam(null);
     }
 }

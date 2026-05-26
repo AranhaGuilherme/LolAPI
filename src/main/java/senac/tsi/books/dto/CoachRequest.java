@@ -1,23 +1,14 @@
-package senac.tsi.books.entities;
+package senac.tsi.books.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Entity
-public class Coach {
+public class CoachRequest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Schema(description = "Gerado automaticamente pelo banco. Em POST, envie 0 ou omita.", example = "0")
+    @Schema(description = "Ignorado no POST. Envie 0 ou omita para o banco gerar automaticamente.", example = "0")
     private Long id;
 
     @NotBlank(message = "Nome do coach nao pode estar vazio")
@@ -28,24 +19,11 @@ public class Coach {
     @Max(value = 60, message = "Experiencia nao pode ser maior que 60 anos")
     private int experiencia;
 
-    @OneToOne(mappedBy = "coach")
-    @JsonIgnoreProperties({"coach", "players"})
-    private Team team;
-
-    public Coach() {}
-
-    public Coach(String nome, int experiencia) {
-        this.nome = nome;
-        this.experiencia = experiencia;
-    }
-
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public int getExperiencia() { return experiencia; }
-    public Team getTeam() { return team; }
 
     public void setId(Long id) { this.id = id; }
     public void setNome(String nome) { this.nome = nome; }
     public void setExperiencia(int experiencia) { this.experiencia = experiencia; }
-    public void setTeam(Team team) { this.team = team; }
 }

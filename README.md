@@ -132,10 +132,14 @@ X-Idempotency-Key: exemplo-001
 Content-Type: application/json
 
 {
+  "id": 0,
   "nome": "Ahri",
   "role": "MID"
 }
 ```
+
+Em `POST`, o campo `id` pode ser `0` ou pode ser omitido. A API ignora esse valor e deixa o H2 gerar o proximo ID automaticamente.
+Nos relacionamentos, os corpos de requisicao usam campos simples como `teamId`, `coachId`, `championIds`, `timeAId` e `timeBId`. IDs opcionais aceitam `0` ou podem ser omitidos; IDs obrigatorios precisam apontar para registros existentes.
 
 Se a mesma requisicao for repetida com a mesma chave idempotente, a API retorna a resposta armazenada e adiciona:
 

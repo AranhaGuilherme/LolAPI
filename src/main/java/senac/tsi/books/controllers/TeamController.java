@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import senac.tsi.books.config.DefaultApiResponses;
 import senac.tsi.books.config.PagedModelBuilder;
+import senac.tsi.books.config.RequestIdUtils;
+import senac.tsi.books.dto.TeamRequest;
 import senac.tsi.books.entities.Coach;
 import senac.tsi.books.entities.Team;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
@@ -65,8 +67,9 @@ public class TeamController {
     @ApiResponse(responseCode = "201", description = "Time criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping
-    public ResponseEntity<Team> criar(@Valid @RequestBody Team team) {
-        team.setCoach(resolverCoach(team.getCoach()));
+    public ResponseEntity<Team> criar(@Valid @RequestBody TeamRequest request) {
+        Team team = new Team();
+        preencherTeam(team, request);
         Team salvo = repository.save(team);
         URI location = linkTo(methodOn(TeamController.class).buscarPorId(salvo.getId())).toUri();
         return ResponseEntity.created(location).body(salvo);
@@ -77,11 +80,9 @@ public class TeamController {
     @ApiResponse(responseCode = "404", description = "Time nao encontrado")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PutMapping("/{id}")
-    public ResponseEntity<Team> atualizar(@PathVariable Long id, @Valid @RequestBody Team team) {
+    public ResponseEntity<Team> atualizar(@PathVariable Long id, @Valid @RequestBody TeamRequest request) {
         Team existente = buscarTeam(id);
-        existente.setNome(team.getNome());
-        existente.setRegiao(team.getRegiao());
-        existente.setCoach(resolverCoach(team.getCoach()));
+        preencherTeam(existente, request);
         return ResponseEntity.ok(repository.save(existente));
     }
 
@@ -117,11 +118,18 @@ public class TeamController {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Time com ID " + id + " nao encontrado"));
     }
 
-    private Coach resolverCoach(Coach coach) {
-        if (coach == null || coach.getId() == null) {
+    private Coach resolverCoach(Long coachId) {
+        if (RequestIdUtils.semIdValido(coachId)) {
             return null;
         }
-        return coachRepository.findById(coach.getId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Coach com ID " + coach.getId() + " nao encontrado"));
+        return coachRepository.findById(coachId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Coach com ID " + coachId + " nao encontrado"));
+    }
+
+    private void preencherTeam(Team team, TeamRequest request) {
+        team.setNome(request.getNome());
+        team.setRegiao(request.getRegiao());
+        team.setCoach(resolverCoach(request.getCoachId()));
+        team.setPlayers(null);
     }
 }

@@ -88,7 +88,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"nome\": \"Ahri\",\n  \"role\": \"MID\"\n}"
+          "raw": "{\n  \"id\": 0,\n  \"nome\": \"Ahri\",\n  \"role\": \"MID\"\n}"
         },
         "url": "{{baseUrl}}/api/v1/champions"
       }

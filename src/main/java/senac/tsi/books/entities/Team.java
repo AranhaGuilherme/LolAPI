@@ -1,6 +1,7 @@
 package senac.tsi.books.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +19,7 @@ public class Team {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "Gerado automaticamente pelo banco. Em POST, envie 0 ou omita.", example = "0")
     private Long id;
 
     @NotBlank(message = "Nome do time nao pode estar vazio")
