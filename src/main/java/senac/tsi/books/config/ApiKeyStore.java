@@ -1,7 +1,6 @@
 package senac.tsi.books.config;
 
 import org.springframework.stereotype.Component;
-import senac.tsi.books.entities.ApiKeyRole;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -15,12 +14,12 @@ public class ApiKeyStore {
     private final ConcurrentMap<String, ApiKeyData> keys = new ConcurrentHashMap<>();
 
     public ApiKeyStore() {
-        save("professor-admin", "admin-test-key", ApiKeyRole.ADMIN);
-        save("aluno-user", "user-test-key", ApiKeyRole.USER);
+        save("professor", "professor-test-key");
+        save("aluno", "aluno-test-key");
     }
 
-    public ApiKeyData generate(String username, ApiKeyRole role) {
-        return save(username, UUID.randomUUID().toString(), role);
+    public ApiKeyData generate(String username) {
+        return save(username, UUID.randomUUID().toString());
     }
 
     public Optional<ApiKeyData> findActive(String keyValue) {
@@ -40,7 +39,6 @@ public class ApiKeyStore {
         ApiKeyData revoked = new ApiKeyData(
                 apiKey.username(),
                 apiKey.keyValue(),
-                apiKey.role(),
                 false,
                 apiKey.createdAt()
         );
@@ -48,8 +46,8 @@ public class ApiKeyStore {
         return Optional.of(revoked);
     }
 
-    private ApiKeyData save(String username, String keyValue, ApiKeyRole role) {
-        ApiKeyData data = new ApiKeyData(username, keyValue, role, true, LocalDateTime.now());
+    private ApiKeyData save(String username, String keyValue) {
+        ApiKeyData data = new ApiKeyData(username, keyValue, true, LocalDateTime.now());
         keys.put(keyValue, data);
         return data;
     }
@@ -57,7 +55,6 @@ public class ApiKeyStore {
     public record ApiKeyData(
             String username,
             String keyValue,
-            ApiKeyRole role,
             boolean active,
             LocalDateTime createdAt
     ) {

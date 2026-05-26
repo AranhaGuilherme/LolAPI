@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import senac.tsi.books.entities.ApiKeyRole;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -19,7 +18,6 @@ import java.util.Map;
 public class ApiKeyFilter extends OncePerRequestFilter {
 
     public static final String API_KEY_HEADER = "X-API-Key";
-    public static final String API_KEY_ROLE_ATTRIBUTE = "apiKeyRole";
     public static final String API_KEY_VALUE_ATTRIBUTE = "apiKeyValue";
 
     private final ApiKeyStore apiKeyStore;
@@ -60,12 +58,6 @@ public class ApiKeyFilter extends OncePerRequestFilter {
             return;
         }
 
-        if ("DELETE".equalsIgnoreCase(request.getMethod()) && apiKey.role() != ApiKeyRole.ADMIN) {
-            escreverErro(response, HttpServletResponse.SC_FORBIDDEN, "Acesso negado", "Operacoes DELETE exigem API Key com role ADMIN.");
-            return;
-        }
-
-        request.setAttribute(API_KEY_ROLE_ATTRIBUTE, apiKey.role());
         request.setAttribute(API_KEY_VALUE_ATTRIBUTE, apiKey.keyValue());
         filterChain.doFilter(request, response);
     }

@@ -10,7 +10,7 @@
     },
     {
       "key": "apiKey",
-      "value": "admin-test-key"
+      "value": "professor-test-key"
     },
     {
       "key": "idempotencyKey",
@@ -26,7 +26,7 @@
       "name": "Gerar API Key",
       "request": {
         "method": "POST",
-        "url": "{{baseUrl}}/api-keys/generate?username=postman&role=ADMIN"
+        "url": "{{baseUrl}}/api-keys/generate?username=postman"
       }
     },
     {
@@ -94,7 +94,7 @@
       }
     },
     {
-      "name": "Players - Buscar v1",
+      "name": "Players - Buscar",
       "request": {
         "method": "GET",
         "header": [
@@ -107,7 +107,7 @@
       }
     },
     {
-      "name": "Players - Buscar v2",
+      "name": "API Version - Jogador v1",
       "request": {
         "method": "GET",
         "header": [
@@ -116,7 +116,20 @@
             "value": "{{apiKey}}"
           }
         ],
-        "url": "{{baseUrl}}/api/v2/players/1"
+        "url": "{{baseUrl}}/api-version/v1/players/1"
+      }
+    },
+    {
+      "name": "API Version - Jogador v2",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{apiKey}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api-version/v2/players/1"
       }
     },
     {
@@ -166,13 +179,13 @@
       }
     },
     {
-      "name": "Erro 403 - DELETE com USER",
+      "name": "Erro 401 - API Key invalida",
       "request": {
-        "method": "DELETE",
+        "method": "GET",
         "header": [
           {
             "key": "X-API-Key",
-            "value": "user-test-key"
+            "value": "chave-invalida"
           }
         ],
         "url": "{{baseUrl}}/api/v1/champions/1"

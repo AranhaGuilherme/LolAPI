@@ -18,8 +18,6 @@ import java.lang.annotation.Target;
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
         @ApiResponse(responseCode = "401", description = "API Key ausente, invalida ou inativa",
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
-        @ApiResponse(responseCode = "403", description = "API Key valida, mas sem permissao para a operacao",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
         @ApiResponse(responseCode = "404", description = "Recurso ou endpoint nao encontrado",
                 content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiErrorResponse.class))),
         @ApiResponse(responseCode = "409", description = "Conflito de dados, integridade ou chave idempotente reutilizada em outra operacao",

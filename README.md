@@ -39,13 +39,13 @@ mvnw.cmd spring-boot:run
 
 O projeto sobe com duas chaves iniciais:
 
-- Admin: `admin-test-key`
-- Usuario comum: `user-test-key`
+- `professor-test-key`
+- `aluno-test-key`
 
 Use a chave no header:
 
 ```http
-X-API-Key: admin-test-key
+X-API-Key: professor-test-key
 ```
 
 Tambem e possivel gerar uma nova chave:
@@ -54,23 +54,23 @@ Tambem e possivel gerar uma nova chave:
 POST /api-keys/generate?username=aluno
 ```
 
-Por padrao, a chave gerada recebe role `ADMIN`, para facilitar os testes no Swagger e no Postman.
-Tambem e possivel informar `role=USER`, mas `DELETE` exige `ADMIN`.
+Qualquer chave valida autoriza as operacoes protegidas.
 Nao existe endpoint para listar chaves de API, para evitar exposicao de chaves cadastradas.
 
-Para revogar uma chave, use uma chave `ADMIN` no header:
+Para revogar uma chave, use uma chave valida no header:
 
 ```http
 DELETE /api-keys/{keyValue}
-X-API-Key: admin-test-key
+X-API-Key: professor-test-key
 ```
 
 ## Versionamento
 
-A API usa rotas versionadas:
+A API mantem o CRUD principal em `/api/v1/...`. A demonstracao de versionamento fica separada em uma area propria:
 
 - v1: `/api/v1/champions`, `/api/v1/players`, `/api/v1/teams`, `/api/v1/coaches`, `/api/v1/matchgames`
-- v2: `/api/v2/players`
+- API Version v1: `/api-version/v1/players/{id}`
+- API Version v2: `/api-version/v2/players/{id}`
 
 ## Dados iniciais
 
@@ -93,37 +93,41 @@ Ao iniciar com H2, a API ja carrega uma massa demonstrativa de League of Legends
 - Bean Validation nas entidades
 - Tratamento global de erros com `@RestControllerAdvice`
 - Swagger/OpenAPI com esquema de seguranca `X-API-Key`
-- Documentacao de erros `400`, `401`, `403`, `404`, `409`, `429` e `500`
-- API Key com roles `USER` e `ADMIN`
-- `DELETE` exige chave `ADMIN`
-- Geracao publica de API Key de teste, com `ADMIN` como padrao
+- Documentacao de erros `400`, `401`, `404`, `409`, `429` e `500`
+- API Key por header `X-API-Key`, sem cargos
+- Geracao publica de API Key de teste
 - Revogacao de API Key sem endpoint de listagem
 - Idempotencia em `POST` com `X-Idempotency-Key`
 - Rate limit fixo de **20 requisicoes por minuto**
 - CORS configurado para frontends locais
-- Versionamento por path em `/api/v1/...` e `/api/v2/players`
+- Versionamento demonstrativo separado em `/api-version/v1/...` e `/api-version/v2/...`
 
 ## Exemplos
 
-Buscar jogador v1, com HATEOAS:
+Buscar jogador no CRUD principal:
 
 ```http
 GET /api/v1/players/1
-X-API-Key: admin-test-key
+X-API-Key: professor-test-key
 ```
 
-Buscar jogador v2, resumido:
+Comparar jogador na area de versionamento:
 
 ```http
-GET /api/v2/players/1
-X-API-Key: admin-test-key
+GET /api-version/v1/players/1
+X-API-Key: professor-test-key
+```
+
+```http
+GET /api-version/v2/players/1
+X-API-Key: professor-test-key
 ```
 
 Criar campeao com idempotencia:
 
 ```http
 POST /api/v1/champions
-X-API-Key: admin-test-key
+X-API-Key: professor-test-key
 X-Idempotency-Key: exemplo-001
 Content-Type: application/json
 
@@ -145,4 +149,4 @@ Idempotency-Replayed: true
 mvnw.cmd test
 ```
 
-Os testes verificam contexto da aplicacao, carga inicial de dados de LoL, buscas por ID, buscas paginadas, API Key, permissao de `DELETE`, geracao e revogacao de chave `ADMIN`, ausencia de listagem de chaves, idempotencia, rate limit de 20/min e versionamento por path.
+Os testes verificam contexto da aplicacao, carga inicial de dados de LoL, buscas por ID, buscas paginadas, API Key, geracao e revogacao de chaves, ausencia de listagem de chaves, idempotencia, rate limit de 20/min e versionamento separado em API Version.

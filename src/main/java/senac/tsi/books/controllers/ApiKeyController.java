@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import senac.tsi.books.config.ApiKeyStore;
 import senac.tsi.books.config.DefaultApiResponses;
-import senac.tsi.books.entities.ApiKeyRole;
 import senac.tsi.books.exceptions.RecursoNaoEncontradoException;
 
 import java.time.LocalDateTime;
@@ -32,20 +31,18 @@ public class ApiKeyController {
 
     @Operation(
             summary = "Gerar API Key",
-            description = "Cria uma chave para usar no header X-API-Key. Por padrao gera ADMIN para facilitar testes no Swagger."
+            description = "Cria uma chave para usar no header X-API-Key."
     )
     @ApiResponse(responseCode = "201", description = "Chave gerada com sucesso")
     @PostMapping("/generate")
-    public ResponseEntity<ApiKeyResponse> gerar(
-            @RequestParam String username,
-            @RequestParam(defaultValue = "ADMIN") ApiKeyRole role) {
+    public ResponseEntity<ApiKeyResponse> gerar(@RequestParam String username) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiKeyResponse(apiKeyStore.generate(username, role)));
+                .body(new ApiKeyResponse(apiKeyStore.generate(username)));
     }
 
     @Operation(
             summary = "Revogar API Key",
-            description = "Desativa uma chave de API. Exige X-API-Key com role ADMIN. Nao existe endpoint para listar chaves."
+            description = "Desativa uma chave de API. Exige uma X-API-Key valida no header. Nao existe endpoint para listar chaves."
     )
     @ApiResponse(responseCode = "200", description = "Chave revogada com sucesso")
     @ApiResponse(responseCode = "404", description = "Chave nao encontrada")
@@ -59,12 +56,11 @@ public class ApiKeyController {
     public record ApiKeyResponse(
             String username,
             String keyValue,
-            ApiKeyRole role,
             boolean active,
             LocalDateTime createdAt
     ) {
         public ApiKeyResponse(ApiKeyStore.ApiKeyData data) {
-            this(data.username(), data.keyValue(), data.role(), data.active(), data.createdAt());
+            this(data.username(), data.keyValue(), data.active(), data.createdAt());
         }
     }
 }

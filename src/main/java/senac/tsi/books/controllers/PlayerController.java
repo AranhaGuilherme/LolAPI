@@ -43,14 +43,14 @@ public class PlayerController {
     @Autowired
     private TeamRepository teamRepository;
 
-    @Operation(summary = "Listar jogadores - v1", description = "Retorna todos os jogadores com paginacao")
+    @Operation(summary = "Listar jogadores", description = "Retorna todos os jogadores com paginacao")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     @GetMapping
     public PagedModel<EntityModel<Player>> listar(Pageable pageable) {
         return PagedModelBuilder.from(repository.findAll(pageable), this::montarModelo);
     }
 
-    @Operation(summary = "Buscar jogador por ID - v1", description = "Retorna um jogador com HATEOAS")
+    @Operation(summary = "Buscar jogador por ID", description = "Retorna um jogador com HATEOAS")
     @ApiResponse(responseCode = "200", description = "Jogador encontrado")
     @ApiResponse(responseCode = "404", description = "Jogador nao encontrado")
     @GetMapping("/{id}")
