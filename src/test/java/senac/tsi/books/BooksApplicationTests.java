@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -83,6 +84,17 @@ class BooksApplicationTests {
         mockMvc.perform(get("/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.servers[0].url", is("/")));
+    }
+
+    @Test
+    void swaggerDocumentaHeaderDeIdempotenciaNosPosts() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api-docs"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String openApi = result.getResponse().getContentAsString();
+        assertTrue(openApi.contains("\"name\":\"X-Idempotency-Key\""));
+        assertTrue(openApi.contains("\"in\":\"header\""));
     }
 
     @Test

@@ -1,6 +1,8 @@
 package senac.tsi.books.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -49,7 +51,17 @@ public class TeamController {
         return montarModelo(buscarTeam(id));
     }
 
-    @Operation(summary = "Criar time", description = "Cria um novo time no sistema")
+    @Operation(
+            summary = "Criar time",
+            description = "Cria um novo time no sistema",
+            parameters = @Parameter(
+                    name = "X-Idempotency-Key",
+                    in = ParameterIn.HEADER,
+                    required = true,
+                    description = "Chave unica para evitar processamento duplicado do POST",
+                    example = "team-001"
+            )
+    )
     @ApiResponse(responseCode = "201", description = "Time criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping

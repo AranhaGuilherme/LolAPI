@@ -1,6 +1,8 @@
 package senac.tsi.books.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -53,7 +55,17 @@ public class ChampionController {
         return montarModelo(buscarChampion(id));
     }
 
-    @Operation(summary = "Criar campeao", description = "Cria um novo campeao")
+    @Operation(
+            summary = "Criar campeao",
+            description = "Cria um novo campeao",
+            parameters = @Parameter(
+                    name = "X-Idempotency-Key",
+                    in = ParameterIn.HEADER,
+                    required = true,
+                    description = "Chave unica para evitar processamento duplicado do POST",
+                    example = "champion-001"
+            )
+    )
     @ApiResponse(responseCode = "201", description = "Campeao criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados invalidos")
     @PostMapping
